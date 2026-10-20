@@ -40,6 +40,7 @@
     background-position: center;
     -webkit-user-select: text;
     user-select: text;
+    word-break: break-all;
   }
   #paper img { max-width: 100%; border-radius: 8px; margin: 10px 0; display: block; }
 
@@ -47,8 +48,8 @@
   .tool-btn { min-width: 42px; height: 42px; border-radius: 8px; border: 1px solid var(--border); background: #fff; display: flex; justify-content: center; align-items: center; font-size: 18px; cursor: pointer; flex-shrink: 0; }
   .tool-btn:active { background: #f0ece5; }
   
-  .color-input-wrapper { position: relative; overflow: hidden; width: 32px; height: 32px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 0 1px var(--border); flex-shrink: 0; cursor: pointer; background: linear-gradient(45deg, #ff9a9e, #fecfef, #a1c4fd); }
-  .color-input-wrapper input[type="color"] { position: absolute; top: -10px; left: -10px; width: 60px; height: 60px; cursor: pointer; opacity: 0; }
+  .color-input-wrapper { position: relative; overflow: hidden; width: 32px; height: 32px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 0 1px var(--border); flex-shrink: 0; background: linear-gradient(45deg, #ff9a9e, #fecfef, #a1c4fd); cursor: pointer; }
+  .color-input-wrapper input[type="color"] { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
 
   .page-nav { position: fixed; bottom: 80px; right: 16px; display: flex; flex-direction: column; gap: 10px; z-index: 20; }
   .page-nav button { width: 44px; height: 44px; border-radius: 50%; border: none; background: rgba(255,255,255,0.9); box-shadow: 0 4px 12px rgba(0,0,0,0.15); font-size: 20px; color: var(--accent); cursor: pointer; display: flex; justify-content: center; align-items: center; }
@@ -83,8 +84,8 @@
 </div>
 
 <div class="toolbar">
-  <!-- 色盘 -->
   <div class="color-input-wrapper" id="colorPickerBtn">
+    <!-- 优化：Safari支持度更好的色盘控件 -->
     <input type="color" id="colorPicker" value="#e76f51">
   </div>
   <div class="tool-btn" id="boldBtn"><b>B</b></div>
@@ -107,16 +108,23 @@ function dbGet(key) { return new Promise((res, rej) => { const req = db.transact
 let books = [], currentBookId = null, currentPageIndex = 0, currentBgImage = "";
 const $paper = document.getElementById("paper"), $bookNameDisplay = document.getElementById("currentBookName"), $bookSelector = document.getElementById("bookSelector"), $pageIndicator = document.getElementById("pageIndicator");
 
-/* ===== 选区记忆（解决手机焦点丢失的关键） ===== */
+/* ===== 焦点与选区管理（关键修复点） ===== */
 let savedRange = null;
+
+// 记录焦点
 function saveSelection() {
   const sel = window.getSelection();
   if (sel.getRangeAt && sel.rangeCount) {
-    savedRange = sel.getRangeAt(0);
+    // 确保选区还在编辑器内部
+    if ($paper.contains(sel.anchorNode)) {
+      savedRange = sel.getRangeAt(0);
+    }
   }
 }
+
+// 恢复焦点
 function restoreSelection() {
-  if (savedRange) {
+  if (savedRange && $paper.contains(savedRange.commonAncestorContainer)) {
     const sel = window.getSelection();
     sel.removeAllRanges();
     sel.addRange(savedRange);
@@ -125,15 +133,28 @@ function restoreSelection() {
   }
 }
 
-// 监听输入区的光标变化，随时记录
+// 监听编辑器焦点变化
 $paper.addEventListener("keyup", saveSelection);
 $paper.addEventListener("mouseup", saveSelection);
 $paper.addEventListener("touchend", saveSelection);
+$paper.addEventListener("blur", saveSelection); // 失去焦点前再保存一次
 
-// 让工具栏点击时，不抢夺焦点
-document.querySelectorAll('.tool-btn, .color-input-wrapper').forEach(el => {
-  el.addEventListener('touchstart', (e) => { e.preventDefault(); saveSelection(); }, {passive: false});
-  el.addEventListener('mousedown', (e) => { e.preventDefault(); saveSelection(); });
+// 工具栏按钮：用 click 阻止默认的焦点抢夺，但保留原生事件
+document.querySelectorAll('.tool-btn').forEach(el => {
+  el.addEventListener('mousedown', (e) => e.preventDefault());
+});
+
+// 色盘特殊处理：确保点击时能正确保存并恢复选区
+const $colorPicker = document.getElementById("colorPicker");
+$colorPicker.addEventListener('mousedown', (e) => {
+  saveSelection();
+});
+
+$colorPicker.addEventListener("input", (e) => {
+  restoreSelection();
+  document.execCommand("styleWithCSS", false, true);
+  document.execCommand("foreColor", false, e.target.value);
+  saveSelection();
 });
 
 /* ===== 初始化 ===== */
@@ -208,7 +229,7 @@ document.getElementById("addBookBtn").onclick = () => {
   saveData(); renderBookSelector(); loadBook(books[books.length - 1].id);
 };
 
-/* ===== 翻页逻辑 ===== */
+/* ===== 翻页与编辑 ===== */
 function renderPage() {
   const book = books.find(b => b.id === currentBookId);
   if (!book) return;
@@ -234,14 +255,7 @@ $paper.addEventListener("input", () => {
   }, 500);
 });
 
-/* ===== 工具栏核心动作（加入选区恢复） ===== */
-document.getElementById("colorPicker").addEventListener("input", (e) => {
-  restoreSelection();
-  document.execCommand("styleWithCSS", false, true); // 强制用 CSS 样式而不是 font 标签
-  document.execCommand("foreColor", false, e.target.value);
-  saveSelection();
-});
-
+/* ===== 其他工具动作 ===== */
 document.getElementById("boldBtn").onclick = () => {
   restoreSelection();
   document.execCommand("bold", false, null);
@@ -260,7 +274,7 @@ document.getElementById("imageUpload").onchange = (e) => {
   const reader = new FileReader();
   reader.onload = (ev) => {
     compressImage(ev.target.result, 800, (compressedBase64) => {
-      restoreSelection(); // 恢复到之前光标的位置插图
+      restoreSelection();
       document.execCommand("insertImage", false, compressedBase64);
       $paper.dispatchEvent(new Event('input'));
     });
