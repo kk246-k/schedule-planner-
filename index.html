@@ -28,25 +28,39 @@
 
   /* 主编辑区 */
   #paperWrapper { flex: 1; overflow-y: auto; padding: 16px; position: relative; }
-  #paper { background: var(--paper); min-height: 100%; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); padding: 20px; font-size: 17px; line-height: 1.8; outline: none; }
+  #paper { 
+    background-color: var(--paper); 
+    min-height: 100%; 
+    border-radius: 8px; 
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05); 
+    padding: 20px; 
+    font-size: 17px; 
+    line-height: 1.8; 
+    outline: none; 
+    /* 默认的横线背景 */
+    background-image: repeating-linear-gradient(transparent, transparent 30px, #f0ece5 30px, #f0ece5 31px); 
+    background-attachment: local;
+    background-size: cover;
+    background-position: center;
+  }
   
-  /* 纸张横线背景 */
-  #paper { background-image: repeating-linear-gradient(transparent, transparent 30px, #f0ece5 30px, #f0ece5 31px); background-attachment: local; }
-
   /* 正文内的图片 */
-  #paper img { max-width: 100%; border-radius: 8px; margin: 10px 0; display: block; box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: transform 0.2s; }
+  #paper img { max-width: 100%; border-radius: 8px; margin: 10px 0; display: block; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
 
   /* 底部工具栏 */
-  .toolbar { background: var(--toolbar-bg); border-top: 1px solid var(--border); padding: 8px 12px calc(8px + env(safe-area-inset-bottom)); display: flex; align-items: center; gap: 8px; overflow-x: auto; z-index: 10; }
-  .tool-btn { min-width: 40px; height: 40px; border-radius: 8px; border: 1px solid var(--border); background: #fff; display: flex; justify-content: center; align-items: center; font-size: 18px; cursor: pointer; flex-shrink: 0; }
+  .toolbar { background: var(--toolbar-bg); border-top: 1px solid var(--border); padding: 8px 12px calc(8px + env(safe-area-inset-bottom)); display: flex; align-items: center; gap: 10px; overflow-x: auto; z-index: 10; }
+  .tool-btn { min-width: 42px; height: 42px; border-radius: 8px; border: 1px solid var(--border); background: #fff; display: flex; justify-content: center; align-items: center; font-size: 18px; cursor: pointer; flex-shrink: 0; position: relative; }
   .tool-btn:active { background: #f0ece5; }
-  .color-btn { width: 24px; height: 24px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 0 1px var(--border); cursor: pointer; flex-shrink: 0; }
   
+  /* 颜色选择器 */
+  .color-input-wrapper { position: relative; overflow: hidden; width: 32px; height: 32px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 0 1px var(--border); flex-shrink: 0; cursor: pointer; background: linear-gradient(45deg, #ff9a9e, #fecfef, #a1c4fd); }
+  .color-input-wrapper input[type="color"] { position: absolute; top: -10px; left: -10px; width: 60px; height: 60px; cursor: pointer; opacity: 0; }
+
   /* 页面切换按钮 */
-  .page-nav { position: fixed; bottom: 70px; right: 16px; display: flex; flex-direction: column; gap: 10px; z-index: 20; }
+  .page-nav { position: fixed; bottom: 80px; right: 16px; display: flex; flex-direction: column; gap: 10px; z-index: 20; }
   .page-nav button { width: 44px; height: 44px; border-radius: 50%; border: none; background: rgba(255,255,255,0.9); box-shadow: 0 4px 12px rgba(0,0,0,0.15); font-size: 20px; color: var(--accent); cursor: pointer; display: flex; justify-content: center; align-items: center; }
   .page-nav button:disabled { opacity: 0.3; cursor: not-allowed; }
-  .page-indicator { position: fixed; bottom: 75px; right: 70px; font-size: 14px; color: #a1887f; background: rgba(255,255,255,0.8); padding: 4px 10px; border-radius: 12px; z-index: 20; }
+  .page-indicator { position: fixed; bottom: 85px; right: 70px; font-size: 14px; color: #a1887f; background: rgba(255,255,255,0.8); padding: 4px 10px; border-radius: 12px; z-index: 20; }
 
   #toast { position: fixed; top: 10%; left: 50%; transform: translateX(-50%) translateY(-20px); background: rgba(0, 0, 0, 0.8); color: #fff; padding: 10px 20px; border-radius: 8px; font-size: 14px; z-index: 10000; opacity: 0; pointer-events: none; transition: all 0.3s ease; }
   #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
@@ -63,35 +77,36 @@
   </div>
 </header>
 
-<!-- 本子切换下拉框 -->
 <div id="bookSelector"></div>
 
-<!-- 页面指示器 -->
 <div class="page-indicator" id="pageIndicator">第 1 页</div>
 <div class="page-nav">
   <button id="prevPageBtn" title="上一页">↑</button>
   <button id="nextPageBtn" title="下一页">↓</button>
 </div>
 
-<!-- 编辑区 -->
 <div id="paperWrapper">
-  <div id="paper" contenteditable="true" placeholder="在这里记录你的日常..."></div>
+  <div id="paper" contenteditable="true"></div>
 </div>
 
-<!-- 工具栏 -->
 <div class="toolbar">
-  <div class="color-btn" style="background:#333;" data-color="#333"></div>
-  <div class="color-btn" style="background:#e76f51;" data-color="#e76f51"></div>
-  <div class="color-btn" style="background:#2a9d8f;" data-color="#2a9d8f"></div>
-  <div class="color-btn" style="background:#e9c46a;" data-color="#e9c46a"></div>
+  <!-- 自定义色盘 -->
+  <div class="color-input-wrapper" id="colorPickerBtn" title="自定义文字颜色">
+    <input type="color" id="colorPicker" value="#e76f51">
+  </div>
+  
   <div class="tool-btn" id="boldBtn"><b>B</b></div>
-  <div class="tool-btn" id="imageBtn">🖼️</div>
+  <div class="tool-btn" id="imageBtn" title="插入图片">🖼️</div>
   <input type="file" id="imageUpload" accept="image/*" multiple style="display:none;">
-  <div class="tool-btn" id="eraserBtn">🧹</div>
+  
+  <div class="tool-btn" id="bgUploadBtn" title="更换纸张背景">🪄</div>
+  <input type="file" id="bgUpload" accept="image/*" style="display:none;">
+  
+  <div class="tool-btn" id="eraserBtn" title="清除格式">🧹</div>
 </div>
 
 <script>
-/* ===== 1. IndexedDB 封装（大容量存储，解决空间爆满） ===== */
+/* ===== 1. IndexedDB 封装 ===== */
 let db;
 const DB_NAME = "JournalDB";
 const STORE_NAME = "books";
@@ -101,9 +116,7 @@ function initDB() {
     const request = indexedDB.open(DB_NAME, 1);
     request.onupgradeneeded = e => {
       const db = e.target.result;
-      if (!db.objectStoreNames.contains(STORE_NAME)) {
-        db.createObjectStore(STORE_NAME);
-      }
+      if (!db.objectStoreNames.contains(STORE_NAME)) db.createObjectStore(STORE_NAME);
     };
     request.onsuccess = e => { db = e.target.result; resolve(); };
     request.onerror = e => reject(e);
@@ -113,8 +126,7 @@ function initDB() {
 function dbSet(key, value) {
   return new Promise((resolve, reject) => {
     const tx = db.transaction(STORE_NAME, "readwrite");
-    const store = tx.objectStore(STORE_NAME);
-    const req = store.put(value, key);
+    const req = tx.objectStore(STORE_NAME).put(value, key);
     req.onsuccess = () => resolve();
     req.onerror = e => reject(e);
   });
@@ -123,24 +135,24 @@ function dbSet(key, value) {
 function dbGet(key) {
   return new Promise((resolve, reject) => {
     const tx = db.transaction(STORE_NAME, "readonly");
-    const store = tx.objectStore(STORE_NAME);
-    const req = store.get(key);
+    const req = tx.objectStore(STORE_NAME).get(key);
     req.onsuccess = e => resolve(e.target.result);
     req.onerror = e => reject(e);
   });
 }
 
 /* ===== 2. 状态管理 ===== */
-let books = []; // [{ id, name, pages: [{content: ""}] }]
+let books = []; 
 let currentBookId = null;
 let currentPageIndex = 0;
+let currentBgImage = ""; // 当前本子的背景图
 
 const $paper = document.getElementById("paper");
 const $bookNameDisplay = document.getElementById("currentBookName");
 const $bookSelector = document.getElementById("bookSelector");
 const $pageIndicator = document.getElementById("pageIndicator");
 
-/* ===== 3. 初始化与渲染 ===== */
+/* ===== 3. 初始化 ===== */
 async function initApp() {
   await initDB();
   
@@ -149,7 +161,6 @@ async function initApp() {
     books = savedBooks;
     currentBookId = await dbGet("my_journal_current_id") || books[0].id;
   } else {
-    // 首次使用，创建默认本子
     const defaultBook = { id: Date.now().toString(), name: "日常手账", pages: [{ content: "" }] };
     books = [defaultBook];
     currentBookId = defaultBook.id;
@@ -157,7 +168,7 @@ async function initApp() {
   }
   
   renderBookSelector();
-  loadBook(currentBookId);
+  await loadBook(currentBookId);
 }
 
 async function saveData() {
@@ -165,18 +176,33 @@ async function saveData() {
   await dbSet("my_journal_current_id", currentBookId);
 }
 
-/* ===== 4. 本子逻辑 ===== */
-function loadBook(id) {
+/* ===== 4. 本子与背景逻辑 ===== */
+async function loadBook(id) {
   currentBookId = id;
   const book = books.find(b => b.id === id);
   if (!book) return;
   
   $bookNameDisplay.textContent = book.name;
-  currentPageIndex = 0; // 切换本子时回到第一页
+  currentPageIndex = 0; 
+  
+  // 读取该本子的专属背景图
+  currentBgImage = await dbGet(`my_journal_bg_${id}`) || "";
+  applyBackground();
+
   renderPage();
   
   $bookSelector.classList.remove("show");
   saveData();
+}
+
+function applyBackground() {
+  if (currentBgImage) {
+    // 有自定义背景，直接铺满
+    $paper.style.backgroundImage = `url(${currentBgImage})`;
+  } else {
+    // 默认横线纸张背景
+    $paper.style.backgroundImage = `repeating-linear-gradient(transparent, transparent 30px, #f0ece5 30px, #f0ece5 31px)`;
+  }
 }
 
 function renderBookSelector() {
@@ -184,7 +210,6 @@ function renderBookSelector() {
   books.forEach(b => {
     const div = document.createElement("div");
     div.className = "book-item" + (b.id === currentBookId ? " active" : "");
-    
     const span = document.createElement("span");
     span.textContent = b.name;
     span.onclick = () => loadBook(b.id);
@@ -203,16 +228,13 @@ function renderBookSelector() {
         loadBook(currentBookId);
       }
     };
-    
     div.appendChild(span);
     div.appendChild(delBtn);
     $bookSelector.appendChild(div);
   });
 }
 
-document.getElementById("currentBookName").onclick = () => {
-  $bookSelector.classList.toggle("show");
-};
+document.getElementById("currentBookName").onclick = () => $bookSelector.classList.toggle("show");
 
 document.getElementById("addBookBtn").onclick = () => {
   const name = prompt("请输入新本子的名称：", "新本子");
@@ -224,18 +246,12 @@ document.getElementById("addBookBtn").onclick = () => {
   loadBook(newBook.id);
 };
 
-/* ===== 5. 页面逻辑（翻页） ===== */
+/* ===== 5. 页面翻页 ===== */
 function renderPage() {
   const book = books.find(b => b.id === currentBookId);
   if (!book) return;
-  
-  // 渲染内容
   $paper.innerHTML = book.pages[currentPageIndex].content || "";
-  
-  // 更新指示器
   $pageIndicator.textContent = `第 ${currentPageIndex + 1} / ${book.pages.length} 页`;
-  
-  // 按钮状态
   document.getElementById("prevPageBtn").disabled = currentPageIndex === 0;
   document.getElementById("nextPageBtn").disabled = currentPageIndex === book.pages.length - 1;
 }
@@ -252,7 +268,6 @@ document.getElementById("nextPageBtn").onclick = () => {
   }
 };
 
-// 监听输入，自动保存（防抖）
 let saveTimeout;
 $paper.addEventListener("input", () => {
   clearTimeout(saveTimeout);
@@ -263,13 +278,20 @@ $paper.addEventListener("input", () => {
   }, 500);
 });
 
-/* ===== 6. 富文本工具栏逻辑 ===== */
-// 颜色
-document.querySelectorAll(".color-btn").forEach(btn => {
-  btn.onclick = () => {
-    const color = btn.getAttribute("data-color");
-    document.execCommand("foreColor", false, color);
-  };
+/* ===== 6. 工具栏逻辑（重点修复） ===== */
+
+// 【修复核心】：在点击工具栏的按钮时，阻止默认的“失去焦点”行为
+const toolbarElements = document.querySelectorAll('.tool-btn, .color-input-wrapper');
+toolbarElements.forEach(el => {
+  el.addEventListener('mousedown', (e) => e.preventDefault());
+  el.addEventListener('touchstart', (e) => e.preventDefault(), {passive: false});
+});
+
+// 自由选色
+const $colorPicker = document.getElementById("colorPicker");
+$colorPicker.addEventListener("input", (e) => {
+  // input 事件在滑动色盘时实时触发
+  document.execCommand("foreColor", false, e.target.value);
 });
 
 // 加粗
@@ -282,7 +304,7 @@ document.getElementById("eraserBtn").onclick = () => {
   document.execCommand("removeFormat", false, null);
 };
 
-// 插入图片（自动压缩）
+// 插入正文图片
 document.getElementById("imageBtn").onclick = () => {
   document.getElementById("imageUpload").click();
 };
@@ -290,21 +312,43 @@ document.getElementById("imageBtn").onclick = () => {
 document.getElementById("imageUpload").onchange = (e) => {
   const files = e.target.files;
   if (!files.length) return;
-  
   Array.from(files).forEach(file => {
     const reader = new FileReader();
     reader.onload = (ev) => {
       compressImage(ev.target.result, 800, (compressedBase64) => {
         document.execCommand("insertImage", false, compressedBase64);
-        // 手动触发一次保存
         $paper.dispatchEvent(new Event('input'));
       });
     };
     reader.readAsDataURL(file);
   });
-  e.target.value = ""; // 清空 input
+  e.target.value = ""; 
 };
 
+// ====== 新增：更换纸张背景 ======
+document.getElementById("bgUploadBtn").onclick = () => {
+  document.getElementById("bgUpload").click();
+};
+
+document.getElementById("bgUpload").onchange = (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    // 压缩背景图，最大宽度 1000
+    compressImage(ev.target.result, 1000, async (compressedBase64) => {
+      currentBgImage = compressedBase64;
+      applyBackground();
+      // 将背景图存入当前本子的数据库
+      await dbSet(`my_journal_bg_${currentBookId}`, currentBgImage);
+      showToast("背景已更换！");
+    });
+  };
+  reader.readAsDataURL(file);
+  e.target.value = "";
+};
+
+// 通用图片压缩函数
 function compressImage(base64Str, maxSize, callback) {
   const img = new Image();
   img.onload = () => {
@@ -329,19 +373,14 @@ function showToast(msg) {
   setTimeout(() => $toast.classList.remove("show"), 2000);
 }
 
-/* ===== 8. 扩展功能：自动新加页 ===== */
-// 当在最后一页，且输入内容超过一定长度时，提示可以加页
+// 自动加页逻辑
 $paper.addEventListener("input", () => {
   const book = books.find(b => b.id === currentBookId);
-  if (currentPageIndex === book.pages.length - 1) {
-    // 如果字数超过 100，自动加一页
-    if ($paper.innerText.length > 100) {
-      book.pages.push({ content: "" });
-      saveData();
-      // 此时不跳转，只更新页码显示
-      $pageIndicator.textContent = `第 ${currentPageIndex + 1} / ${book.pages.length} 页`;
-      document.getElementById("nextPageBtn").disabled = false;
-    }
+  if (currentPageIndex === book.pages.length - 1 && $paper.innerText.length > 100) {
+    book.pages.push({ content: "" });
+    saveData();
+    $pageIndicator.textContent = `第 ${currentPageIndex + 1} / ${book.pages.length} 页`;
+    document.getElementById("nextPageBtn").disabled = false;
   }
 });
 
